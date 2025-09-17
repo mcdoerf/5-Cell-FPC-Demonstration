@@ -1,12 +1,10 @@
 
-###Implementing Simulation Study
+###Implementing Simulation Studies.
 
 library(flextable)
 library(officer)
 library(dplyr)
 library(tidyr) 
-
-
 
 ###This function creates our population
 ##Ntot is total number of people in the population.  N_flu is the number of flu cases.  psymp_flu is the proportion of
@@ -65,7 +63,7 @@ simulate_data<-function(population, p1_symp, p1_nonsymp, p2){
 ########sim_study implements our simulation study.
 
 sim_study <- function(nsim = 1000, Ntot, N_flu,
-                      psymp_flu, psymp_healthy, p1_symp, p1_nonsymp, p2, case=5, alpha = 0.05, postdraws, seed = 123) {
+                      psymp_flu, psymp_healthy, p1_symp, p1_nonsymp, p2, alpha = 0.05, postdraws, seed = 123) {
   
   
   
@@ -84,7 +82,7 @@ sim_study <- function(nsim = 1000, Ntot, N_flu,
     
     # 2. call inference()
     #    tibble(method, est, lwr, upr, se)
-    inf <- inference(dat, case = case, alpha = alpha, postdraws=postdraws)
+    inf <- inference(dat, alpha = alpha, postdraws=postdraws)
     
     
     ## ---- Point estimate table ----
@@ -173,7 +171,7 @@ sim_study <- function(nsim = 1000, Ntot, N_flu,
 }
 
 
-##Building Word Document to Store Results
+##Conducting Simulation Studies
 
 # Step 1: run all scenarios
 scenarios <- expand.grid(
@@ -188,8 +186,7 @@ all_results1 <- purrr::pmap(scenarios, function(prevalence, p2) {
     N_flu = prevalence * 10000,
     psymp_flu = 0.6, psymp_healthy = 0.1,
     p1_symp = 0.5, p1_nonsymp = 0.2,
-    p2 = p2,
-    case = 5, alpha = 0.05, postdraws = 10000
+    p2 = p2, alpha = 0.05, postdraws = 10000
   )
 })
 
@@ -213,25 +210,105 @@ scenarios <- expand.grid(
   p2 = c(0.05, 0.1, 0.25, 0.5)   # example
 )
 
-all_results <- purrr::pmap(scenarios, function(prevalence, p2) {
+all_results2 <- purrr::pmap(scenarios, function(prevalence, p2) {
   sim_study(
     nsim = 10000, 
     Ntot = 1000, 
     N_flu = prevalence * 1000,
     psymp_flu = 0.6, psymp_healthy = 0.1,
     p1_symp = 0.5, p1_nonsymp = 0.2,
-    p2 = p2,
-    case = 5, alpha = 0.05, postdraws = 10000, seed=12345
+    p2 = p2, alpha = 0.05, postdraws = 10000, seed=12345
   )
 })
 
 # Step 2: combine summaries with scenario labels
 for (i in seq_len(nrow(scenarios))) {
-  all_results[[i]]$scenario <- scenarios[i,]
+  all_results2[[i]]$scenario <- scenarios[i,]
 }
 
-save(all_results, file = "sim_results2_arXiv.RData")
+save(all_results2, file = "sim_results2_arXiv.RData")
 
-all_results[[14]]
 
+###Third set of scenarios: Ntot even smaller (500).  
+
+# Step 1: run all scenarios
+scenarios <- expand.grid(
+  prevalence = c(0.05, 0.1, 0.25, 0.5),
+  p2 = c(0.05, 0.1, 0.25, 0.5)   # example
+)
+
+all_results3 <- purrr::pmap(scenarios, function(prevalence, p2) {
+  sim_study(
+    nsim = 10000, 
+    Ntot = 500, 
+    N_flu = prevalence * 500,
+    psymp_flu = 0.6, psymp_healthy = 0.1,
+    p1_symp = 0.5, p1_nonsymp = 0.2,
+    p2 = p2, alpha = 0.05, postdraws = 10000, seed=123456
+  )
+})
+
+# Step 2: combine summaries with scenario labels
+for (i in seq_len(nrow(scenarios))) {
+  all_results3[[i]]$scenario <- scenarios[i,]
+}
+
+save(all_results3, file = "sim_results3_arXiv.RData")
+
+
+
+
+
+###Fourth set of scenarios: Ntot=1000, but making stream 1 even more nonrepresentative.
+
+# Step 1: run all scenarios
+scenarios <- expand.grid(
+  prevalence = c(0.05, 0.1, 0.25, 0.5),
+  p2 = c(0.05, 0.1, 0.25, 0.5)   # example
+)
+
+all_results4 <- purrr::pmap(scenarios, function(prevalence, p2) {
+  sim_study(
+    nsim = 10000, 
+    Ntot = 1000, 
+    N_flu = prevalence * 1000,
+    psymp_flu = 0.6, psymp_healthy = 0.1,
+    p1_symp = 0.9, p1_nonsymp = 0.1,
+    p2 = p2, alpha = 0.05, postdraws = 10000, seed=1234567
+  )
+})
+
+# Step 2: combine summaries with scenario labels
+for (i in seq_len(nrow(scenarios))) {
+  all_results4[[i]]$scenario <- scenarios[i,]
+}
+
+save(all_results4, file = "sim_results4_arXiv.RData")
+
+
+###Fifth set of scenarios: Ntot=1000, make stream 1 even more nonrepresentative.
+
+# Step 1: run all scenarios
+scenarios <- expand.grid(
+  prevalence = c(0.05, 0.1, 0.25, 0.5),
+  p2 = c(0.05, 0.1, 0.25, 0.5)   # example
+)
+
+all_results5 <- purrr::pmap(scenarios, function(prevalence, p2) {
+  sim_study(
+    nsim = 10000, 
+    Ntot = 1000, 
+    N_flu = prevalence * 1000,
+    psymp_flu = 0.9, psymp_healthy = 0.1,
+    p1_symp = 0.9, p1_nonsymp = 0.1,
+    p2 = p2, alpha = 0.05, postdraws = 10000, seed=12345678
+  )
+})
+
+# Step 2: combine summaries with scenario labels
+for (i in seq_len(nrow(scenarios))) {
+  all_results5[[i]]$scenario <- scenarios[i,]
+}
+
+save(all_results5, file = "sim_results5_arXiv.RData")
 

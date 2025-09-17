@@ -1,0 +1,101 @@
+---
+title: "CRISP Data Anlaysis"
+author: "Michael Doerfler"
+date: "2025-07-15"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Lin generously provided the cancer recurrence data.  According to my understanding, the 5 cell counts should be calculated as follows:
+
+n15: Sampled in both streams, tested negative, or sampled in 2 but not 1, tested negative.  In the Excel data file, this would correspond to Anchor=1, Anchor Recurrence=0, and CoCValidatedRecurrence=0.
+
+n2: Sampled in both streams, tested positive.  In the Excel data file, this would be Anchor=1, Anchor Recurrence=1, CoCValidatedRecurrence=1.
+
+n4: Sampled in 1 but not 2, tested positive.  Anchor=0, CoCValidatedRecurrence=1.
+
+n6: Sampled in 2 but not 1, tested positive.  Anchor=1, AnchorRecurrence=1, CoCValidatedRecurrence=0.
+
+n37: Not sampled in either stream OR sampled in 1 but not 2, tested negative.  Anchor=0, CoCValidatedRecurrence=0.
+
+Lin noted that there were 3 cells with Anchor=1, AnchorRecurrence=0, and CoCValidatedRecurrence=1.  He thinks we can move these 3 observations into the test - in Stream 2, not sampled in Stream 1 cell (i.e. add to n15).
+
+After sorting the Excel data, our 5 cell data should look like this:
+
+n15: 169
+
+n2: 12
+
+n4: 52
+
+n6: 19
+
+n37: 777
+
+As a double check, we can make sure these add up to 1029 (the total number of patients).
+
+```{r}
+169+12+52+19+777
+
+```
+```{r}
+data<-c(169, 12, 52, 19, 777)
+sum(data)
+```
+Here we get our point estimates and standard errors.
+
+```{r}
+
+five_cell_estimator(data=data, case=5, type="Unadjusted")
+five_cell_estimator(data=data, case=5, type="FPC1")
+
+rs_estimator(data=data, case=5, type="FPC2")
+
+chapman_estimator(data=data, case=5)
+
+```
+
+Here we get our confidence intervals.
+
+```{r}
+set.seed(1234)
+
+est5<-five_cell_estimator(data=data, case=5, type="Unadjusted")$est #Extracting point estimate for use with Wald interval.
+se5<-five_cell_estimator(data=data, case=5, type="Unadjusted")$se #Extracting standard error for use with Wald interval.
+se5_FPC1<-five_cell_estimator(data=data, case=5, type="FPC1")$se #Extracting FPC1 adjusted standard error for use with Wald interval.
+
+est_rs<-rs_estimator(data=data, case=5)$est
+
+se_rs<-rs_estimator(data=data, case=5)$se
+
+se_rs_FPC<-rs_estimator(data=data, case=5, type="FPC2")$se
+
+
+##Creating Wald CIs for 5 cell MLE
+wald_ci2(est5, se5, alpha=0.05, Ntot=1029, n15=159, nc=83)
+
+wald_ci2(est5, se5_FPC1, alpha=0.05, Ntot=1029, n15=159, nc=83)
+
+#Bayes CIs for 5 cell MLE
+
+bayes_ci_5(data=data, case=5, alpha=0.05, type="Unadjusted", postdraws=10000)
+
+bayes_ci_5(data=data, case=5, alpha=0.05, type="FPC1", postdraws=10000)
+
+#Wald CIs for RS
+
+wald_ci2(est_rs, se_rs, alpha=0.05, Ntot=1029, n15=159, nc=83)
+
+wald_ci2(est_rs, se_rs_FPC, alpha=0.05, Ntot=1029, n15=159, nc=83)
+
+#Chapman CI
+
+sadinle_ci(data=data, case=5, alpha=0.05)
+
+
+
+
+```

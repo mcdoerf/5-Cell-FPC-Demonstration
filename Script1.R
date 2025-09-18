@@ -399,7 +399,7 @@ inference<-function(data, alpha, postdraws){
                          bayes_five_cell_MLE_FPC1=bayes_five_cell_MLE_FPC1,
                          bayes_five_cell_MLE_FPC2=bayes_five_cell_MLE_FPC2),
       
-      rs_MLE=list(wald_rs_unadj=wald_rs_unadj, wald_rs_FPC, bayes_rs=bayes_rs),
+      rs_MLE=list(wald_rs_unadj=wald_rs_unadj, wald_rs_FPC=wald_rs_FPC, bayes_rs=bayes_rs),
       
       chapman=list(chapman_ci=chapman_ci)
     )

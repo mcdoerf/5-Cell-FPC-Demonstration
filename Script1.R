@@ -21,21 +21,21 @@ data_decomp<-function(data){  ###Decomposes data.  Assumes the data comes in the
 # RS estimator & variance
 rs_estimator <- function(data, type="Unadjusted") {
   
-  data1<-data_decomp(data)  ##Decompose the data.
+  counts<-data_decomp(data)  ##Decompose the data.
   
-  n_rs<-data1$n2+data1$n6   ##Number of individuals that test positive in the random sample.
+  n_rs<- counts$n2+counts$n6   ##Number of individuals that test positive in the random sample.
   
-  n<-data1$n15+data1$n2+data1$n6 ##Number of individuals in the random sample.
+  n<-counts$n15+counts$n2+counts$n6 ##Number of individuals in the random sample.
   
   p_rs<-n_rs/n #Point Estimate of Prevalence
   
-  est=(p_rs)*(data1$Ntot) #Point Estimate of Number of Diseased Individuals
+  est=(p_rs)*(counts$Ntot) #Point Estimate of Number of Diseased Individuals
   
-  p_rs2<-max(n_rs, 0.5)/n #Add 0.5 if the number of disesaed in the random sample is 0.
+  p_rs2<-max(n_rs, 0.5)/n #Add 0.5 if the number of diseased in the random sample is 0.
   
-  var_rs<-(data1$Ntot)^2*p_rs2*(1-p_rs2)/(n)   ###Non FPC adjusted variance
+  var_rs<-(counts$Ntot)^2*p_rs2*(1-p_rs2)/(n)   ###Non FPC adjusted variance
   
-  FPC<-min((data1$n*(data1$Ntot-data1$n))/(data1$Ntot*(data1$n-1)),1) ##Cochran's FPC
+  FPC<-min((counts$n*(counts$Ntot-counts$n))/(counts$Ntot*(counts$n-1)),1) ##Cochran's FPC
   
   var_rs_FPC<-FPC*var_rs  ##FPC adjusted variance of random sample estimator.
   
@@ -52,14 +52,14 @@ rs_estimator <- function(data, type="Unadjusted") {
 
 # Chapman estimator & variance
 chapman_estimator <- function(data) {
-  data<-data_decomp(data)
+  counts<-data_decomp(data)
   
-  n1.<-data$n11+data$n10
-  n.1<-data$n11+data$n01
+  n1.<-counts$n11+counts$n10
+  n.1<-counts$n11+counts$n01
   
-  nchapman<-((n1.+1)*(n.1+1))/(data$n11+1)-1  ##Chapman's point estimator
+  nchapman<-((n1.+1)*(n.1+1))/(counts$n11+1)-1  ##Chapman's point estimator
   
-  var_chap<-(data$n11+data$n10+1)*(data$n11+data$n01+1)*(data$n10)*(data$n01)/((data$n11+1)^2*(data$n11+2))  ##Variance of Chapman's estimator.
+  var_chap<-(counts$n11+counts$n10+1)*(counts$n11+counts$n01+1)*(counts$n10)*(counts$n01)/((counts$n11+1)^2*(counts$n11+2))  ##Variance of Chapman's estimator.
   
   list(est=nchapman, se=sqrt(var_chap))
 }
@@ -72,62 +72,118 @@ chapman_estimator <- function(data) {
 five_cell_estimator<-function(data, type="Unadjusted"){
   
   
-  data1<-data_decomp(data=data)
   
-  w= (data1$n2+data1$n4)/data1$Ntot
+  counts<-data_decomp(data=data)  ##Decompose into counts
   
-  eta=(data1$n6)/(data1$n15+data1$n6)
+  N_tot_star=counts$n15+counts$n6+counts$n37
   
-  N_tot_star=data1$n15+data1$n6+data1$n37
+  w=(counts$n2+counts$n4)/counts$Ntot
   
-  n_rs_star=data1$n15+data1$n6
+  n_rs_star=counts$n15+counts$n6
+  
+  
+
+  
+  if (counts$n6==0){
+    N_MLE=counts$n2+counts$n4
+  } 
+    
+  else{
+    
+  eta=(counts$n6)/(counts$n15+counts$n6)
+
   
   pi_all = w+eta*(1-w)
   
   
   ###5 cell MLE estimate
   
-  N_MLE = data1$Ntot*pi_all
+  N_MLE = counts$Ntot*pi_all
   
-  
+  }
   ##Non FPC Corrected standard error (based on Delta Method)
   
-  p15hat<-data1$n15/data1$Ntot
+  p15hat<-counts$n15/counts$Ntot
   
-  p2hat<-data1$n2/data1$Ntot
+  p2hat<-counts$n2/counts$Ntot
   
-  p4hat<-data1$n4/data1$Ntot
+  p4hat<-counts$n4/counts$Ntot
   
-  p6hat<-data1$n6/data1$Ntot
+  p6hat<-counts$n6/counts$Ntot
   
-  p37hat<-data1$n37/data1$Ntot
+  p37hat<-counts$n37/counts$Ntot
   
   phat <- c(p15hat, p2hat, p4hat, p6hat, p37hat)
+  
+  ##If one of the cell counts is 0, replace estimated probabilities with those obtained by assigning a
+  #Jeffery's prior.
+  
+  if (counts$n15==0 | counts$n2==0 | counts$n4==0 |counts$n6==0 | counts$n37==0){
+    p15hat<-(counts$n15+0.5)/(counts$Ntot+5*0.5)
+    
+    p2hat<-(counts$n2+0.5)/(counts$Ntot+5*0.5)
+    
+    p4hat<-(counts$n4+0.5)/(counts$Ntot+5*0.5)
+    
+    p6hat<-(counts$n6+0.5)/(counts$Ntot+5*0.5)
+    
+    p37hat<-(counts$n37+0.5)/(counts$Ntot+5*0.5)
+    
+    phat<-c(p15hat, p2hat, p4hat, p6hat, p37hat)
+    
+    
+  }
   
   
   gp <- c(-p6hat*p37hat/(p15hat+p6hat)^2, 1, 1, 1+p37hat*p15hat/(p15hat+p6hat)^2, p6hat/(p15hat+p6hat))
 
   
-  Sigma <- -outer(phat, phat) / data1$Ntot
+  Sigma <- -outer(phat, phat) / counts$Ntot
   
-  diag(Sigma) <- phat * (1 - phat) / data1$Ntot
+  diag(Sigma) <- phat * (1 - phat) / counts$Ntot
   
   
-  var <- t(gp)%*%Sigma%*%gp*(data1$Ntot^2)  #Unadjusted Variance
+  var <- t(gp)%*%Sigma%*%gp*(counts$Ntot^2)  #Unadjusted Variance
   
   #FPC1 Corrected Variance
   
-  eta_new=max(data1$n6, 0.5)/(max(data1$n15, 0.5)+max(data1$n6, 0.5))
+  if (n_rs_star==0 || n_rs_star==1){
+    var_FPC1=var
+    var_FPC2=var
+    
+  } else if(counts$n6==0){
+
+    eta_new=(counts$n6+0.5)/(counts$n6+1+counts$n15) #if n6=0, get the estimate that would be obtained if we
+    #used a Jeffreys prior.
+    
+    var_eta=min(n_rs_star*(N_tot_star-n_rs_star)/(N_tot_star*(n_rs_star-1)) ,1)*(eta_new*(1-eta_new)/n_rs_star)
+    
+    var_pi_FPC1=(1-w)^2*var_eta
+    
+    var_FPC1=counts$Ntot^2*var_pi_FPC1  ##FPC Adjustment 1
+    
+    #FPC corrected standard error 2 (acknowledging variability in w)
+    
+    var_FPC2<-counts$Ntot^2*(var_pi_FPC1+((1-eta_new)^2)*w*(1-w)/counts$Ntot)
   
-  var_eta=min(n_rs_star*(N_tot_star-n_rs_star)/(N_tot_star*(n_rs_star-1)) ,1)*(eta_new*(1-eta_new)/n_rs_star)
+  }
   
-  var_pi_FPC1=(1-w)^2*var_eta
+  else{
+    eta_new=(counts$n6)/(counts$n15+counts$n6)
+    
+    var_eta=min(n_rs_star*(N_tot_star-n_rs_star)/(N_tot_star*(n_rs_star-1)) ,1)*(eta_new*(1-eta_new)/n_rs_star)
+    
+    var_pi_FPC1=(1-w)^2*var_eta
+    
+    var_FPC1=counts$Ntot^2*var_pi_FPC1  ##FPC Adjustment 1
+    
+    #FPC corrected standard error 2 (acknowledging variability in w)
+    
+    var_FPC2<-counts$Ntot^2*(var_pi_FPC1+((1-eta_new)^2)*w*(1-w)/counts$Ntot)
+  }
   
-  var_FPC1=data1$Ntot^2*var_pi_FPC1  ##FPC Adjustment 1
   
-  #FPC corrected standard error 2 (acknowledging variability in w)
-  
-  var_FPC2<-data1$Ntot^2*(var_pi_FPC1+((1-eta_new)^2)*w*(1-w)/data1$Ntot)
+
   
   if (type=="Unadjusted"){
     return(list(est=N_MLE, se=sqrt(var)))
@@ -141,18 +197,32 @@ five_cell_estimator<-function(data, type="Unadjusted"){
     return(list(est=N_MLE, se=sqrt(var_FPC2)))
   }
   
-  
-}
+} 
+
 
 #################################Confidence Intervals
 
+
+####To make sure no pathological cases occur, we define safe_interval.
+
+safe_interval <- function(lwr, upr, context = "unknown") {
+  if (!is.finite(lwr) || !is.finite(upr) || lwr > upr) {
+    warning("Degenerate CI in ", context, 
+            ": lwr=", lwr, ", upr=", upr, call. = FALSE)
+    return(c(NA_real_, NA_real_))
+  } else {
+    return(c(lwr, upr))
+  }
+}
+
+
 ###Generic Wald CI function
 
-wald_ci <- function(est, se, alpha=0.05) {
+wald_ci <- function(est, se, alpha=0.05, Ntot) {
   z<-qnorm((1-alpha/2), mean=0, sd=1, lower.tail=TRUE)
-  lwr <-  est - z * se
-  upr <- est + z * se
-  c(lwr, upr)
+  lwr <-  max(est - z * se,0)
+  upr <- min(est + z * se, Ntot)
+  safe_interval(lwr, upr)
 }
 
 
@@ -162,41 +232,54 @@ wald_ci2 <- function(est, se, alpha=0.05, Ntot, n15, nc) {
   z<-qnorm((1-alpha/2), mean=0, sd=1, lower.tail=TRUE)
   lwr <- max(nc, est - z * se)         #Number of diseased has to be greater than nc.
   upr <- min(Ntot-n15, est + z * se)   #Number of diseased cannot exceed Ntot-n15
-  c(lwr, upr)
+  if (lwr<upr){
+    return(safe_interval(lwr, upr))
+  }
+  else if (lwr>=upr){
+    return(c(nc, Ntot-n15))
+  }
 }
 
 
 
 #Sadinle CI to accompany Chapman's estimate
 sadinle_ci<-function(data, alpha=0.05){
-  data<-data_decomp(data)
+  counts<-data_decomp(data)
   
-  h_n<-(data$n10+0.5)*(data$n01+0.5)/(data$n11+0.5)
+  h_n<-(counts$n10+0.5)*(counts$n01+0.5)/(counts$n11+0.5)
   
-  sigma_tl<-sqrt(1/(data$n11+0.5)+1/(data$n10+0.5)+1/(data$n01+0.5)+(data$n11+0.5)*(1/(data$n10+0.5))*(1/(data$n01+0.5)))
+  sigma_tl<-sqrt(1/(counts$n11+0.5)+1/(counts$n10+0.5)+1/(counts$n01+0.5)+(counts$n11+0.5)*(1/(counts$n10+0.5))*(1/(counts$n01+0.5)))
   
   z<-qnorm(1-(alpha/2), mean=0, sd=1, lower.tail=TRUE)
   
-  lwr<-max(c(data$nc, (data$nc-0.5)+h_n*exp(-z*sigma_tl)))
+  lwr<-max(counts$nc, (counts$nc-0.5)+h_n*exp(-z*sigma_tl))
   
-  upr<-min(data$Ntot, (data$nc-0.5)+h_n*exp(z*sigma_tl))
+  upr<-min(counts$Ntot-counts$n15, (counts$nc-0.5)+h_n*exp(z*sigma_tl))
   
-  c(lwr, upr)}
+  if (upr<=lwr){   ##Sometimes (extremely rarely) the Sadinle CI gives (counts$nc-0.5)+h_n*exp(-z*sigma_tl) and
+    #(counts$nc-0.5)+h_n*exp(z*sigma_tl) both less than nc.  In which case, we just set the interval to (nc, Ntot-n15).
+   lwr<-counts$nc
+   upr<-counts$Ntot-counts$n15
+   
+  }
+  
+  safe_interval(lwr, upr)
+  }
 
 
 #Bayes CI Generator for 5 cell MLE
 
 bayes_ci_5<-function(data, alpha=0.05, type="Unadjusted", postdraws=10000){
   
-  data1<-data_decomp(data=data)
+  counts<-data_decomp(data=data)
   
-  n15<-data1$n15
-  n2<-data1$n2
-  n4<-data1$n4
-  n6<-data1$n6
-  n37<-data1$n37
-  nc<-data1$nc
-  Ntot<-data1$Ntot
+  n15<-counts$n15
+  n2<-counts$n2
+  n4<-counts$n4
+  n6<-counts$n6
+  n37<-counts$n37
+  nc<-counts$nc
+  Ntot<-counts$Ntot
   
   pstar_post<-rdirichlet(postdraws, c(n15, n2, n4, n6, n37)+0.5)
   
@@ -210,14 +293,22 @@ bayes_ci_5<-function(data, alpha=0.05, type="Unadjusted", postdraws=10000){
     
     upr<-min(as.numeric(quantile(Nhat_star, 1-alpha/2)), Ntot-n15)
     
-    c(lwr, upr)
+    if (lwr>=upr){
+      lwr<-nc
+      upr<-Ntot-n15
+    }
+    
+    safe_interval(lwr, upr)
     
   }
   
   else if (type=="FPC1"){
     
+    se_unadj <- five_cell_estimator(data=data, type="Unadjusted")$se
     
-    a1=min(five_cell_estimator(data=data, type="FPC1")$se/five_cell_estimator(data=data, type="Unadjusted")$se,1)
+    se_FPC1  <- five_cell_estimator(data=data, type="FPC1")$se
+    
+    a1 <- if (se_unadj > 0) min(se_FPC1 / se_unadj,1) else 1
     
     b1=five_cell_estimator(data=data, type="FPC1")$est *(1-a1)
     
@@ -227,13 +318,22 @@ bayes_ci_5<-function(data, alpha=0.05, type="Unadjusted", postdraws=10000){
     
     upr<-min(as.numeric(quantile(Nhat_star1, 1-alpha/2)), Ntot-n15)
     
-    c(lwr, upr)
+    if (lwr>=upr){
+      lwr<-nc
+      upr<-Ntot-n15
+    }
+    
+    safe_interval(lwr, upr)
     
   }
   
   else if (type=="FPC2"){
     
-    a1=min(five_cell_estimator(data=data, type="FPC2")$se/five_cell_estimator(data=data, type="Unadjusted")$se,1)
+    se_unadj <- five_cell_estimator(data=data, type="Unadjusted")$se
+    
+    se_FPC2  <- five_cell_estimator(data=data, type="FPC2")$se
+    
+    a1 <- if (se_unadj > 0) min(se_FPC2 / se_unadj, 1) else 1
     
     b1=five_cell_estimator(data=data, type="FPC2")$est *(1-a1)
     
@@ -243,7 +343,12 @@ bayes_ci_5<-function(data, alpha=0.05, type="Unadjusted", postdraws=10000){
     
     upr<-min(as.numeric(quantile(Nhat_star1, 1-alpha/2)), Ntot-n15)
     
-    c(lwr, upr) 
+    if (lwr>=upr){
+      lwr<-nc
+      upr<-Ntot-n15
+    }
+    
+    safe_interval(lwr, upr) 
   }
   
 }
@@ -252,17 +357,31 @@ bayes_ci_5<-function(data, alpha=0.05, type="Unadjusted", postdraws=10000){
 ###Function for Implementing Bayesian Credible CI for Estimator Based on Random Sample Only
 bayes_ci_rs<-function(data, alpha=0.05, type="FPC"){
   
-  data1<-data_decomp(data)
+  counts<-data_decomp(data)
   
-  n11<-data1$n11
+  n15<-counts$n15
   
-  n10<-data1$n10
+  n2<-counts$n2
   
-  n01<-data1$n01
+  n4<-counts$n4
   
-  n<-data1$n
+  n6<-counts$n6
   
-  Ntot<-data1$Ntot
+  n37<-counts$n37
+  
+  nc<-counts$nc
+  
+  Ntot<-counts$Ntot
+  
+  n11<-counts$n11
+  
+  n10<-counts$n10
+  
+  n01<-counts$n01
+  
+  n<-counts$n
+  
+  Ntot<-counts$Ntot
   
   nrs_pos=n11+n01
   
@@ -276,8 +395,13 @@ bayes_ci_rs<-function(data, alpha=0.05, type="FPC"){
   
   if(nrs_pos == 0){ LL_JeffreysForP = 0 }
   if(nrs_pos == n){ UL_JeffreysForP = 1 }
-  LL_Jeffreys = Ntot*LL_JeffreysForP
-  UL_Jeffreys = Ntot*UL_JeffreysForP
+  LL_Jeffreys = max(Ntot*LL_JeffreysForP, nc)
+  UL_Jeffreys = min(Ntot*UL_JeffreysForP, Ntot-n15)
+  
+  if (LL_Jeffreys>=UL_Jeffreys){
+    LL_Jeffreys<-nc
+    UL_Jeffreys<-Ntot-n15
+  }
   
   ####Adjusting Jeffry's CI for FPC
   
@@ -287,19 +411,25 @@ bayes_ci_rs<-function(data, alpha=0.05, type="FPC"){
   UL_JeffreysForPFPC = a*UL_JeffreysForP + b
   if(nrs_pos == 0){ LL_JeffreysForPFPC = 0 }
   if(nrs_pos == n){ UL_JeffreysForPFPC = 1 }
-  LL_JeffreysFPC = Ntot*LL_JeffreysForPFPC
-  UL_JeffreysFPC = Ntot*UL_JeffreysForPFPC
+  LL_JeffreysFPC = max(Ntot*LL_JeffreysForPFPC, nc)
+  UL_JeffreysFPC = min(Ntot*UL_JeffreysForPFPC, Ntot-n15)
+  
+  if (LL_JeffreysFPC>=UL_JeffreysFPC){  ###In some instances, LL_JeffreysFPC>UL_JeffreysFPC
+    LL_JeffreysFPC<-nc
+    UL_JeffreysFPC<-Ntot-n15
+  }
   
   if (type=="Unadjusted"){
-    c(LL_Jeffreys, UL_Jeffreys)
+    safe_interval(LL_Jeffreys, UL_Jeffreys)
   }
   
   if (type=="FPC"){
-    c(LL_JeffreysFPC, UL_JeffreysFPC)
+    safe_interval(LL_JeffreysFPC, UL_JeffreysFPC)
   }
   
   
 }
+
 
 
 ##########Inference function
@@ -308,27 +438,22 @@ bayes_ci_rs<-function(data, alpha=0.05, type="FPC"){
 
 inference<-function(data, alpha, postdraws){
   
-  data1<-data_decomp(data)
+  counts<-data_decomp(data)
   
-  n1<-data1$n1
-  n2<-data1$n2
-  n3<-data1$n3
-  n4<-data1$n4
-  n5<-data1$n5
-  n6<-data1$n6
-  n7<-data1$n7
+  n2<-counts$n2
+  n4<-counts$n4
+  n6<-counts$n6
+  n15<-counts$n15
+  n37<-counts$n37
   
-  n15<-data1$n15
-  n37<-data1$n37
+  n11<-counts$n11
+  n10<-counts$n10
+  n01<-counts$n01
   
-  n11<-data1$n11
-  n10<-data1$n10
-  n01<-data1$n01
+  Ntot<-counts$Ntot
   
-  Ntot<-data1$Ntot
-  
-  nc<-data1$nc
-  n<-data1$n
+  nc<-counts$nc
+  n<-counts$n
   
   
   ##Point Estimators
@@ -369,9 +494,9 @@ inference<-function(data, alpha, postdraws){
   bayes_five_cell_MLE_FPC2<-bayes_ci_5(data=data, alpha=alpha, type="FPC2", postdraws=postdraws)
   
   #RS Estimator
-  wald_rs_unadj<-wald_ci(rs_MLE, rs_MLE_se_unadj, alpha=alpha)
+  wald_rs_unadj<-wald_ci2(rs_MLE, rs_MLE_se_unadj, alpha=alpha, Ntot=Ntot, n15=n15, nc=nc)
   
-  wald_rs_FPC<-wald_ci(rs_MLE, rs_MLE_se_FPC, alpha=alpha)
+  wald_rs_FPC<-wald_ci2(rs_MLE, rs_MLE_se_FPC, alpha=alpha, Ntot=Ntot, n15=n15, nc=nc)
   
   bayes_rs<-bayes_ci_rs(data=data, alpha=alpha, type="FPC")
   
@@ -408,14 +533,6 @@ inference<-function(data, alpha, postdraws){
   
   
 }
-
-
-
-
-
-
-
-
 
 
 

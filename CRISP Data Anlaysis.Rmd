@@ -49,12 +49,15 @@ Here we get our point estimates and standard errors.
 
 ```{r}
 
-five_cell_estimator(data=data, case=5, type="Unadjusted")
-five_cell_estimator(data=data, case=5, type="FPC1")
+five_cell_estimator(data=data, type="Unadjusted")
+five_cell_estimator(data=data, type="FPC1")
+five_cell_estimator(data=data, type="FPC2")
 
-rs_estimator(data=data, case=5, type="FPC2")
 
-chapman_estimator(data=data, case=5)
+rs_estimator(data=data, type="Unadjusted")
+rs_estimator(data=data, type="FPC")
+
+chapman_estimator(data=data)
 
 ```
 
@@ -63,37 +66,46 @@ Here we get our confidence intervals.
 ```{r}
 set.seed(1234)
 
-est5<-five_cell_estimator(data=data, case=5, type="Unadjusted")$est #Extracting point estimate for use with Wald interval.
-se5<-five_cell_estimator(data=data, case=5, type="Unadjusted")$se #Extracting standard error for use with Wald interval.
-se5_FPC1<-five_cell_estimator(data=data, case=5, type="FPC1")$se #Extracting FPC1 adjusted standard error for use with Wald interval.
+est5<-five_cell_estimator(data=data, type="Unadjusted")$est #Extracting point estimate for use with Wald interval.
+se5<-five_cell_estimator(data=data, type="Unadjusted")$se #Extracting standard error for use with Wald interval.
 
-est_rs<-rs_estimator(data=data, case=5)$est
+se5_FPC1<-five_cell_estimator(data=data, type="FPC1")$se #Extracting FPC1 adjusted standard error for use with Wald interval.
 
-se_rs<-rs_estimator(data=data, case=5)$se
+se5_FPC2<-five_cell_estimator(data=data, type="FPC2")$se #Extracting FPC2 adjusted standard error for use with Wald interval.
 
-se_rs_FPC<-rs_estimator(data=data, case=5, type="FPC2")$se
+est_rs<-rs_estimator(data=data)$est
+
+se_rs<-rs_estimator(data=data, type="Unadjusted")$se
+
+se_rs_FPC<-rs_estimator(data=data, type="FPC")$se
 
 
 ##Creating Wald CIs for 5 cell MLE
-wald_ci2(est5, se5, alpha=0.05, Ntot=1029, n15=159, nc=83)
+wald_ci2(est5, se5, alpha=0.05, Ntot=1029, n15=169, nc=83)
 
-wald_ci2(est5, se5_FPC1, alpha=0.05, Ntot=1029, n15=159, nc=83)
+wald_ci2(est5, se5_FPC1, alpha=0.05, Ntot=1029, n15=169, nc=83)
+
+wald_ci2(est5, se5_FPC2, alpha=0.05, Ntot=1029, n15=169, nc=83)
 
 #Bayes CIs for 5 cell MLE
 
-bayes_ci_5(data=data, case=5, alpha=0.05, type="Unadjusted", postdraws=10000)
+bayes_ci_5(data=data, alpha=0.05, type="Unadjusted", postdraws=10000)
 
-bayes_ci_5(data=data, case=5, alpha=0.05, type="FPC1", postdraws=10000)
+bayes_ci_5(data=data, alpha=0.05, type="FPC1", postdraws=10000)
+
+bayes_ci_5(data=data, alpha=0.05, type="FPC2", postdraws=10000)
 
 #Wald CIs for RS
 
-wald_ci2(est_rs, se_rs, alpha=0.05, Ntot=1029, n15=159, nc=83)
+wald_ci2(est_rs, se_rs, alpha=0.05, Ntot=1029, n15=169, nc=83)
 
-wald_ci2(est_rs, se_rs_FPC, alpha=0.05, Ntot=1029, n15=159, nc=83)
+wald_ci2(est_rs, se_rs_FPC, alpha=0.05, Ntot=1029, n15=169, nc=83)
+
+bayes_ci_rs(data=data, alpha=0.05, type="FPC")
 
 #Chapman CI
 
-sadinle_ci(data=data, case=5, alpha=0.05)
+sadinle_ci(data=data, alpha=0.05)
 
 
 

@@ -116,7 +116,7 @@ five_cell_estimator<-function(data, type="Unadjusted"){
   phat <- c(p15hat, p2hat, p4hat, p6hat, p37hat)
   
   ##If one of the cell counts is 0, replace estimated probabilities with those obtained by assigning a
-  #Jeffery's prior.
+  #Jeffery's prior to (p15, p2, p4, p6, p37)^T.
   
   if (counts$n15==0 | counts$n2==0 | counts$n4==0 |counts$n6==0 | counts$n37==0){
     p15hat<-(counts$n15+0.5)/(counts$Ntot+5*0.5)
@@ -154,7 +154,7 @@ five_cell_estimator<-function(data, type="Unadjusted"){
   } else if(counts$n6==0){
 
     eta_new=(counts$n6+0.5)/(counts$n6+1+counts$n15) #if n6=0, get the estimate that would be obtained if we
-    #used a Jeffreys prior.
+    #used a Jeffreys prior to (p15, p2, p4, p6, p37)^{T}.
     
     var_eta=min(n_rs_star*(N_tot_star-n_rs_star)/(N_tot_star*(n_rs_star-1)) ,1)*(eta_new*(1-eta_new)/n_rs_star)
     
@@ -226,7 +226,9 @@ wald_ci <- function(est, se, alpha=0.05, Ntot) {
 }
 
 
-###Generic Wald CI function, for cases where we know n15 and Ntot-n15
+###Generic Wald CI function, for cases where we know n15 and Ntot-n15. Truncates the interval from above at
+###Ntot-n15 (since we know this is the most that can be diseased) and from below at nc (since we know at least
+#this many are diseased).
 
 wald_ci2 <- function(est, se, alpha=0.05, Ntot, n15, nc) {
   z<-qnorm((1-alpha/2), mean=0, sd=1, lower.tail=TRUE)
@@ -244,6 +246,7 @@ wald_ci2 <- function(est, se, alpha=0.05, Ntot, n15, nc) {
 
 #Sadinle CI to accompany Chapman's estimate
 sadinle_ci<-function(data, alpha=0.05){
+  
   counts<-data_decomp(data)
   
   h_n<-(counts$n10+0.5)*(counts$n01+0.5)/(counts$n11+0.5)

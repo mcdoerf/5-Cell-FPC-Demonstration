@@ -9,21 +9,21 @@ output: word_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Lin generously provided the cancer recurrence data.  According to my understanding, the 5 cell counts should be calculated as follows:
+The following RMarkdown document provides the code for the real-data analysis on the CRISP data.
 
-n15: Sampled in both streams, tested negative, or sampled in 2 but not 1, tested negative.  In the Excel data file, this would correspond to Anchor=1, Anchor Recurrence=0, and CoCValidatedRecurrence=0.
+n15: Sampled in both streams, tested negative, or sampled in 2 but not 1, tested negative.
 
-n2: Sampled in both streams, tested positive.  In the Excel data file, this would be Anchor=1, Anchor Recurrence=1, CoCValidatedRecurrence=1.
+n2: Sampled in both streams, tested positive.
 
-n4: Sampled in 1 but not 2, tested positive.  Anchor=0, CoCValidatedRecurrence=1.
+n4: Sampled in 1 but not 2, tested positive.
 
-n6: Sampled in 2 but not 1, tested positive.  Anchor=1, AnchorRecurrence=1, CoCValidatedRecurrence=0.
+n6: Sampled in 2 but not 1, tested positive.
 
-n37: Not sampled in either stream OR sampled in 1 but not 2, tested negative.  Anchor=0, CoCValidatedRecurrence=0.
+n37: Not sampled in either stream OR sampled in 1 but not 2, tested negative.
 
-Lin noted that there were 3 cells with Anchor=1, AnchorRecurrence=0, and CoCValidatedRecurrence=1.  He thinks we can move these 3 observations into the test - in Stream 2, not sampled in Stream 1 cell (i.e. add to n15).
+There were 3 cells with Anchor=1, AnchorRecurrence=0, and CoCValidatedRecurrence=1. We move these 3 observations into the n15 cell.
 
-After sorting the Excel data, our 5 cell data should look like this:
+Our data are:
 
 n15: 169
 
@@ -35,12 +35,8 @@ n6: 19
 
 n37: 777
 
-As a double check, we can make sure these add up to 1029 (the total number of patients).
+As a double check, we make sure these add up to 1029 (the total number of patients).
 
-```{r}
-169+12+52+19+777
-
-```
 ```{r}
 data<-c(169, 12, 52, 19, 777)
 sum(data)

@@ -45,9 +45,9 @@ Here we get our point estimates and standard errors.
 
 ```{r}
 
-five_cell_estimator(data=data, type="Unadjusted")
-five_cell_estimator(data=data, type="FPC1")
-five_cell_estimator(data=data, type="FPC2")
+five_cell_estimator(data=data, type="Unadjusted", psi=200/1029)
+five_cell_estimator(data=data, type="FPC1", psi=200/1029)
+five_cell_estimator(data=data, type="FPC2", psi=200/1029)
 
 
 rs_estimator(data=data, type="Unadjusted")
@@ -62,12 +62,12 @@ Here we get our confidence intervals.
 ```{r}
 set.seed(1234)
 
-est5<-five_cell_estimator(data=data, type="Unadjusted")$est #Extracting point estimate for use with Wald interval.
-se5<-five_cell_estimator(data=data, type="Unadjusted")$se #Extracting standard error for use with Wald interval.
+est5<-five_cell_estimator(data=data, type="Unadjusted", psi=200/1029)$est #Extracting point estimate for use with Wald interval.
+se5<-five_cell_estimator(data=data, type="Unadjusted", psi=200/1029)$se #Extracting standard error for use with Wald interval.
 
-se5_FPC1<-five_cell_estimator(data=data, type="FPC1")$se #Extracting FPC1 adjusted standard error for use with Wald interval.
+se5_FPC1<-five_cell_estimator(data=data, type="FPC1", psi=200/1029)$se #Extracting FPC1 adjusted standard error for use with Wald interval.
 
-se5_FPC2<-five_cell_estimator(data=data, type="FPC2")$se #Extracting FPC2 adjusted standard error for use with Wald interval.
+se5_FPC2<-five_cell_estimator(data=data, type="FPC2", psi=200/1029)$se #Extracting FPC2 adjusted standard error for use with Wald interval.
 
 est_rs<-rs_estimator(data=data)$est
 
@@ -87,9 +87,9 @@ wald_ci2(est5, se5_FPC2, alpha=0.05, Ntot=1029, n15=169, nc=83)
 
 bayes_ci_5(data=data, alpha=0.05, type="Unadjusted", postdraws=10000)
 
-bayes_ci_5(data=data, alpha=0.05, type="FPC1", postdraws=10000)
+bayes_ci_5(data=data, alpha=0.05, type="FPC1", postdraws=10000, psi=200/1029)
 
-bayes_ci_5(data=data, alpha=0.05, type="FPC2", postdraws=10000)
+bayes_ci_5(data=data, alpha=0.05, type="FPC2", postdraws=10000, psi=200/1029)
 
 #Wald CIs for RS
 
@@ -102,6 +102,8 @@ bayes_ci_rs(data=data, alpha=0.05, type="FPC")
 #Chapman CI
 
 sadinle_ci(data=data, alpha=0.05)
+
+rivest(data=data, alpha=0.05)
 
 
 

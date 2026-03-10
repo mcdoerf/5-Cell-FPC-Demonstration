@@ -9,6 +9,11 @@ output: word_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+library(here)
+source(here::here("./01_functions.R"))
+```
+
 The following RMarkdown document provides the code for the real-data analysis on the CRISP data.
 
 n15: Sampled in both streams, tested negative, or sampled in 2 but not 1, tested negative.

@@ -1,8 +1,6 @@
-####-----------------
-###Helper Functions
-###-----------------
-
 library(MCMCpack)  #For rdirichlet() function
+
+# Helper functions --------------------------------------------------------
 
 data_decomp<-function(data){  ###Decomposes data.  Assumes the data comes in the five cell format,
   #as (n15, n2, n4, n6, n37).
@@ -16,9 +14,12 @@ data_decomp<-function(data){  ###Decomposes data.  Assumes the data comes in the
   return(list(n15=n15, n2=n2, n4=n4, n6=n6, n37=n37, n11=n2, n10=n4, n01=n6, nc=n2+n4+n6, n=n15+n2+n6,  Ntot=sum(data)))
 }
 
-########Estimators
 
-# RS estimator & variance
+
+# Estimators --------------------------------------------------------------
+
+
+## RS estimator & variance ----
 rs_estimator <- function(data, type="Unadjusted") {
   
   counts<-data_decomp(data)  ##Decompose the data.
@@ -50,7 +51,7 @@ rs_estimator <- function(data, type="Unadjusted") {
 }
 
 
-# Chapman estimator & variance
+## Chapman estimator & variance ----
 chapman_estimator <- function(data) {
   counts<-data_decomp(data)
   
@@ -66,7 +67,7 @@ chapman_estimator <- function(data) {
 
 
 
-# 5 cell MLE estimator & variance
+## 5 cell MLE estimator & variance ----
 
 
 five_cell_estimator<-function(data, psi, type="Unadjusted"){
@@ -168,10 +169,11 @@ five_cell_estimator<-function(data, psi, type="Unadjusted"){
 } 
 
 
-#################################Confidence Intervals
+
+# Confidence Intervals ----------------------------------------------------
 
 
-####To make sure no pathological cases occur, we define safe_interval.
+## To make sure no pathological cases occur, we define safe_interval ----
 
 safe_interval <- function(lwr, upr, context = "unknown") {
   if (!is.finite(lwr) || !is.finite(upr) || lwr > upr) {
@@ -184,7 +186,7 @@ safe_interval <- function(lwr, upr, context = "unknown") {
 }
 
 
-###Generic Wald CI function
+## Generic Wald CI function ----
 
 wald_ci <- function(est, se, alpha=0.05, Ntot) {
   z<-qnorm((1-alpha/2), mean=0, sd=1, lower.tail=TRUE)
@@ -194,7 +196,8 @@ wald_ci <- function(est, se, alpha=0.05, Ntot) {
 }
 
 
-###Generic Wald CI function, for cases where we know n15 and Ntot-n15. Truncates the interval from above at
+## Generic Wald CI function, for cases where we know n15 and Ntot-n15. ----
+##Truncates the interval from above at
 ###Ntot-n15 (since we know this is the most that can be diseased) and from below at nc (since we know at least
 #this many are diseased).
 
@@ -211,8 +214,7 @@ wald_ci2 <- function(est, se, alpha=0.05, Ntot, n15, nc) {
 }
 
 
-
-#Sadinle CI to accompany Chapman's estimate
+## Sadinle CI to accompany Chapman's estimate ----
 sadinle_ci<-function(data, alpha=0.05){
   
   counts<-data_decomp(data)
@@ -239,11 +241,11 @@ sadinle_ci<-function(data, alpha=0.05){
 
 
 
-#################R Code for Rivest CI to accompany Chapman's estimator
+## R Code for Rivest CI to accompany Chapman's estimator ----
 ##The code for pwar and qwar are adapted from the supplementary materials of Rivest and Yuack 2025.
 ##Rivest, L.P., Yauck, M., 2025. Small sample inference for two-way capture-recapture experiments. International Statistical Review 93, 62–72. doi:https://doi.org/10.1111/insr.12574.
 
-#R code for the generalized Waring cumulative distribution function
+### R code for the generalized Waring cumulative distribution function ----
 
 pwar <- function(q, a, b, c, lower.tail = TRUE) {
   
@@ -269,7 +271,7 @@ pwar <- function(q, a, b, c, lower.tail = TRUE) {
 
 
 
-#R code for the generalized Waring quantile function    
+### R code for the generalized Waring quantile function ----    
 # p is a probability in (0,1)
 # a b and c are positive real parameters satisfying c>a+b
 
@@ -300,9 +302,8 @@ qwar <- function(p, a, b, c) {
 }
 
 
-##Code for calculating rivest CI.  Assumes that data comes in the form
-#c(n15, n2, n4, b6, b37).
-
+### Code for calculating rivest CI. ----
+##Assumes that data comes in the for c(n15, n2, n4, b6, b37).
 
 rivest<-function(data, alpha=0.05){
   counts<-data_decomp(data)
@@ -324,12 +325,7 @@ rivest<-function(data, alpha=0.05){
   return(c(rivest_l, rivest_u))
 }  
 
-
-
-
-
-
-#Bayes CI Generator for 5 cell MLE
+## Bayes CI Generator for 5 cell MLE ----
 
 bayes_ci_5<-function(data, psi, alpha=0.05, type="Unadjusted", postdraws=10000){
   
@@ -416,7 +412,7 @@ bayes_ci_5<-function(data, psi, alpha=0.05, type="Unadjusted", postdraws=10000){
 }
 
 
-###Function for Implementing Bayesian Credible CI for Estimator Based on Random Sample Only
+## Function for Implementing Bayesian Credible CI for Estimator Based on Random Sample Only ----
 bayes_ci_rs<-function(data, alpha=0.05, type="FPC"){
   
   counts<-data_decomp(data)
@@ -495,9 +491,7 @@ bayes_ci_rs<-function(data, alpha=0.05, type="FPC"){
 
 
 
-
-##########Inference function
-
+# Inference Function ------------------------------------------------------
 
 
 inference<-function(data, psi, alpha, postdraws){

@@ -14,7 +14,7 @@ All functions assume the input data comes in the form **(n₁₅, n₂, n₄, n�
 
 `02_simulations.R` contains functions that implement the simulation studies in the paper and automatically convert output to LaTeX.  
 
-`CRISP Data Analysis.RMD` is an RMarkdown file that replicates the real-data analysis on the CRISP data.
+`03_CRISP_Data_Analysis.RMD` is an RMarkdown file that replicates the real-data analysis on the CRISP data.
 
 `sim_results1b_arXiv.RData` contains the simulation results for Table 4 in the mansucript.
 

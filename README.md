@@ -26,10 +26,12 @@ All functions assume the input data comes in the form **(n₁₅, n₂, n₄, n�
 
 `sim_results_CRISPb_arXiv.RData` contains the simulation results for Table S3 in the mansucript.
 
+The function `five_cell_estimator()` returns both an "FPC1-adjusted variance" and an "FPC2-adjusted variance."  The FPC1-adjusted variance is the FPC-adjusted variance discussed in the paper.  The FPC2-adjusted variance was an alternative adjusted variance estimator we devised that did not assume the weights $w$ to be constant.  However, we found empirically that FPC2 was generally too conservative, and that FPC1 was more appropriate.  We have removed discussion of FPC2 from the paper, but have kept the code for it in this repository.
+
 
 
 🧑‍💻 Author
 
 Michael Doerfler
-Ph.D. Candidate, Biostatistics, Emory University
+PhD Candidate, Biostatistics, Emory University
 📧 michael.doerfler@emory.edu

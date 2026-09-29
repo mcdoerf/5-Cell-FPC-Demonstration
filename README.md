@@ -1,6 +1,6 @@
 # Refining capture-recapture methods to estimate disease prevalence in a finite population setting
 
-This github repository contains the code for replicating the simulation studies and real-data analysis in the paper, "Refining capture-recapture methods to estimate case counts in a finite population setting."  `01_functions.R` contains helper functions for running the simulation study, including functions for calculating:
+This github repository contains the code for replicating the simulation studies and real-data analysis in the paper, "Refining capture-recapture methods to estimate disease prevalence in a finite population setting."  `01_functions.R` contains helper functions for running the simulation study, including functions for calculating:
 
 
 - Chapman estimator:  **N̂<sub>Chap</sub>**
